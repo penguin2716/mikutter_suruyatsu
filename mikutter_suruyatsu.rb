@@ -93,13 +93,23 @@ Plugin.create :mikutter_suruyatsu do
     regenerate if not defined? @consumer_key or not defined? @consumer_secret
     request_oauth_token unless token_registered?
     if token_registered? and not defined? @client
-      Twitter.configure do |c|
-        c.consumer_key = @consumer_key
-        c.consumer_secret = @consumer_secret
-        c.oauth_token = UserConfig[:mikutter_suruyatsu_oauth_token]
-        c.oauth_token_secret = UserConfig[:mikutter_suruyatsu_oauth_token_secret]
+      
+      if defined? Twitter::REST
+        @client = Twitter::REST::Client.new do |c|
+          c.consumer_key = @consumer_key
+          c.consumer_secret = @consumer_secret
+          c.oauth_token = UserConfig[:mikutter_suruyatsu_oauth_token]
+          c.oauth_token_secret = UserConfig[:mikutter_suruyatsu_oauth_token_secret]
+        end
+      else
+        Twitter.configure do |c|
+          c.consumer_key = @consumer_key
+          c.consumer_secret = @consumer_secret
+          c.oauth_token = UserConfig[:mikutter_suruyatsu_oauth_token]
+          c.oauth_token_secret = UserConfig[:mikutter_suruyatsu_oauth_token_secret]
+        end
+        @client = Twitter.client
       end
-      @client = Twitter.client
     end
   end
 
