@@ -124,9 +124,17 @@ Plugin.create :mikutter_suruyatsu do
       message = Plugin.create(:gtk).widgetof(opt.widget).widget_post.buffer.text
       Plugin.call(:before_postbox_post, message)
       Plugin.create(:gtk).widgetof(opt.widget).widget_post.buffer.text = ''
+
+      gtk_postbox = Plugin.create(:gtk).widgetof(opt.widget)
+      watch = gtk_postbox.instance_variable_get(:@watch)
       begin
-        Thread.new {
-          @client.update(message)
+        Thread.new(watch, gtk_postbox) { |w, postbox|
+          if w.instance_of? Message
+            @client.update(message, :in_reply_to_status_id => w.id)
+            postbox.destroy
+          else
+            @client.update(message)
+          end
         }
       rescue Exception => e
         Plugin.call(:update, nil, [Message.new(message: e.to_s, system: true)])
