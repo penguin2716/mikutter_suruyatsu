@@ -141,5 +141,22 @@ Plugin.create :mikutter_suruyatsu do
       end
     end
   end
-  
+
+  command(:mikutter_suruyatsu_retweet,
+          name: 'mikutterするやつでRetweet',
+    condition: Plugin::Command[:HasOneMessage],
+    visible: true,
+    role: :timeline) do |opt|
+    initialize
+
+    if defined? @client
+      begin
+        Thread.new(opt.messages.first.id) { |id|
+          @client.retweet(id)
+        }
+      rescue Exception => e
+        Plugin.call(:update, nil, [Message.new(message: e.to_s, system: true)])
+      end
+    end
+  end
 end
